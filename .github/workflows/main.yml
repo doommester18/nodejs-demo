@@ -44,7 +44,7 @@ jobs:
           npm run build
           npm run test
   build_push:
-  
+
       runs-on: ubuntu-latest
       # build docker image and push to docker hub
       # only if the app build and test successfully
@@ -52,7 +52,6 @@ jobs:
 
       steps:
           uses: actions/checkout@v2
-          uses: google-github-actions/setup-gcloud@master
 
         - name: Extract Git Tag
           run: echo "TAG=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
