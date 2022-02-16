@@ -54,6 +54,10 @@ jobs:
         - name: checkout repo
           uses: actions/checkout@v2
 
+        - name: Extract latest tag
+          run: |
+            GIT_TAG=$GITHU_REF_NAME
+
         - name: Set up QEMU
           uses: docker/setup-qemu-action@v1
       
@@ -72,7 +76,7 @@ jobs:
             context: ./
             file: ./Dockerfile
             push: true
-            tags: ${{ secrets.DOCKERHUB_USERNAME }}/nodejs-demo:dev
+            tags: ${{ secrets.DOCKERHUB_USERNAME }}/nodejs-demo:$GIT_TAG
           
         - name: Run the image in a container
           uses: addnab/docker-run-action@v3
