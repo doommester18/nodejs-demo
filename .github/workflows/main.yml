@@ -43,7 +43,7 @@ jobs:
         run: |
           npm run build
           npm run test
-  push_to_Google_Cloud_Registry:
+  build_push:
       # The type of runner that the job will run on
       runs-on: ubuntu-latest
       # build docker image and push to docker hub
