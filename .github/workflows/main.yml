@@ -60,17 +60,21 @@ jobs:
         - name: Set up QEMU
           uses: docker/setup-qemu-action@v1
 
-        - name: Get the version
-          id: get_tag_name
-          run: echo ::set-output name=GIT_TAG_NAME::${GITHUB_REF/refs\/tags\//}
-        - uses: RafikFarhad/push-to-gcr-github-action@v4
+        - name: Setup gcloud
+          uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
           with:
-            gcloud_service_key: ${{ secrets.GCLOUD_SERVICE_KEY }}
-            registry: gcr.io
-            project_id: My First Project
-            image_name: platform
-            image_tag: ${{ steps.get_tag_name.outputs.GIT_TAG_NAME}}
-            dockerfile: ./Dockerfile
+            version: '290.0.1'
+            service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }} 
+            project_id: ${{ secrets.GCP_PROJECT_ID }} 
+
+        - name: Configure docker for GCP
+          run: gcloud auth configure-docker
+
+        - name: Build docker image
+          run:  docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/<YOUR_IMAGE_NAME>:latest . 
+
+        - name: Push to Google Container Registry
+          run:  docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/<YOUR_IMAGE_NAME>:latest 
       
 #        - name: Set up Docker Buildx
 #          uses: docker/setup-buildx-action@v1
