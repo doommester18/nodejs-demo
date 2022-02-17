@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [14.x, 15.x, 16.x]
+        node-version: [14.x, 16.x] # lts verziók
     
     steps:
       - uses: actions/checkout@v2 # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
@@ -62,7 +62,7 @@ jobs:
       run: |-
         gcloud auth configure-docker --quiet  
 
-    - name: Push Docker Image to Container Registry (GCR) # hogyan lehet tesztelni a push-t
+    - name: Push Docker Image to Container Registry (GCR) # hogyan lehet tesztelni a push-t, latest tag-re vegyünk fel egy külön steppet, gcloud container images add-tag + image name megadása
       run: |-
         docker tag $IMAGE_NAME:latest gcr.io/$PROJECT_ID/$IMAGE_NAME:latest
         docker tag $IMAGE_NAME:latest gcr.io/$PROJECT_ID/$IMAGE_NAME:${{ env.TAG }}
