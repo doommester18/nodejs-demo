@@ -1,65 +1,54 @@
 name: Test
 
-# Controls when the action will run. 
 on:
-  # Triggers the workflow on push or pull request events but only for the main branch 6
   push:
     tags:
       - '*dev'
       - '*test'
-    #branches: [ main ]
-  #pull_request:
-    #branches: [ main ]
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
+  workflow_dispatch: # Allows you to run this workflow manually from the Actions tab
   
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains multiple jobs
-  build_test:
-    # The type of runner that the job will run on
+
+  build-and-test-nodejs:
+    name: Build and test nodejs app
     runs-on: ubuntu-latest
     strategy:
       matrix:
         node-version: [14.x, 15.x, 16.x]
-        
-    # Steps represent a sequence of tasks that will be executed as part of the job
+    
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v2 # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
 
       - name: setup node
         uses: actions/setup-node@master
         with:
           node-version: ${{ matrix.node-version }}
 
-      # install applicaion dependencies
       - name: Install dependencies
         run: |
           npm install
           npm ci 
-      # build and test the apps     
-      - name: build
+
+      - name: build # npm run test, test1 - itt lefutnak a unit tesztek, amíg ez nincs meg nem készül build
         run: |
           npm run build
-          npm run test
+          npm run test 
 
-  build-push-gcr:
-    name: Build and Push to GCP
+  build-and-push-to-gcr:
+    name: Build and Push to GCR
     runs-on: ubuntu-latest
-    needs: [build_test]
+    needs: [build-and-test-nodejs]
     env:
-      IMAGE_NAME: nodejs-demo
-      PROJECT_ID: ancient-cortex-307015
+      IMAGE_NAME: platform-test
+      PROJECT_ID: ancient-cortex-307015 # saas gcp service account key kell hozzá
     
-
     steps:
     - name: Checkout
       uses: actions/checkout@v2
 
     - uses: google-github-actions/setup-gcloud@v0
       with:
-        service_account_key: ${{ secrets.SERVICE_ACCOUNT_KEY }}
+        service_account_key: ${{ secrets.SERVICE_ACCOUNT_KEY }} # saas gcp service account key kell hozzá
         project_id: ${{ env.PROJECT_ID }}
         export_default_credentials: true
 
@@ -73,87 +62,10 @@ jobs:
       run: |-
         gcloud auth configure-docker --quiet  
 
-    - name: Push Docker Image to Container Registry (GCR)
+    - name: Push Docker Image to Container Registry (GCR) # hogyan lehet tesztelni a push-t
       run: |-
         docker tag $IMAGE_NAME:latest gcr.io/$PROJECT_ID/$IMAGE_NAME:latest
         docker tag $IMAGE_NAME:latest gcr.io/$PROJECT_ID/$IMAGE_NAME:${{ env.TAG }}
         docker push gcr.io/$PROJECT_ID/$IMAGE_NAME:latest
         docker push gcr.io/$PROJECT_ID/$IMAGE_NAME:${{ env.TAG }}      
 
- # build_push:
- #   name: Build and Push to GCP  
- #   runs-on: ubuntu-latest
- #   env:
- #     IMAGE_NAME: platform
- #   needs: [build_test]
-
- #   steps:
- #   - name: Checkout
- #     uses: actions/checkout@v2
-    
- #   - name: Extract Git Tag
- #     run: echo "TAG=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
-    
- #   - uses: google-github-actions/setup-gcloud@master
- #     with:
- #       service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }} 
- #       project_id: ${{ secrets.GCP_PROJECT_ID }}
- #       export_default_credentials: true
-
- #   - name: Build Docker Image
- #     run: docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/nodejs-demo:${{ env.TAG }}
-      #run: docker build -t $IMAGE_NAME:${{ env.TAG }}
-
- #   - name: Configure Docker Client
- #     run: |-
- #       gcloud auth configure-docker --quiet
-      
- #   - name: Push Docker Image to Contanier Registry (GCR)
- #     run: |-
- #       docker tag nodejs-demo:${{ env.TAG }} gcr.io/${{ secrets.GCP_PROJECT_ID }}/nodejs-demo:${{ env.TAG }}
- #       docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/nodejs-demo:${{ env.TAG }}
-
-
-
-    
-
-      #  - name: Setup gcloud
-      #    uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
-      #    with:
-      #      version: '290.0.1'
-            
-
-      #  - name: Configure docker for GCP
-      #    run: gcloud auth configure-docker
-
-      #  - name: Build docker image
-      #    run:  docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/<YOUR_IMAGE_NAME>:latest . 
-
-      #  - name: Push to Google Container Registry
-      #    run:  docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/<YOUR_IMAGE_NAME>:latest 
-      
-#        - name: Set up Docker Buildx
-#          uses: docker/setup-buildx-action@v1
-
-#        - name: Login to Google Cloud Platform
-#          uses: docker/login-action@v1
-#          with:
-#            username: ${{ secrets.DOCKERHUB_USERNAME }}
-#            password: ${{ secrets.DOCKERHUB_TOKEN }}
-      
-#        - name: Build and push
-#          uses: docker/build-push-action@v2
-#          with:
-#            context: ./
-#            file: ./Dockerfile
-#            push: true
-#            tags: ${{ secrets.DOCKERHUB_USERNAME }}/nodejs-demo:${{ env.TAG }}
-          
-#        - name: Run the image in a container
-#          uses: addnab/docker-run-action@v3
-#          with:
-#            image: ${{ secrets.DOCKERHUB_USERNAME }}/nodejs-demo:${{ env.TAG }}
-#            run: |
-#              echo "runing the docker image"
-#              echo "Testing the nodejs  app endpoints"
-#              echo ${{ steps.docker_build.outputs.digest }}
