@@ -65,7 +65,8 @@ jobs:
         export_default_credentials: true
 
     - name: Build Docker Image
-      run: docker build -t $IMAGE_NAME:${{ env.TAG }}
+      run: docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/nodejs-demo:${{ env.TAG }}
+      #run: docker build -t $IMAGE_NAME:${{ env.TAG }}
 
     - name: Configure Docker Client
       run: |-
@@ -73,8 +74,8 @@ jobs:
       
     - name: Push Docker Image to Contanier Registry (GCR)
       run: |-
-        docker tag $IMAGE_NAME:${{ env.TAG }} gcr.io/${{ secrets.GCP_PROJECT_ID }}/$IMAGE_NAME:${{ env.TAG }}
-        docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/$IMAGE_NAME:${{ env.TAG }}
+        docker tag nodejs-demo:${{ env.TAG }} gcr.io/${{ secrets.GCP_PROJECT_ID }}/nodejs-demo:${{ env.TAG }}
+        docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/nodejs-demo:${{ env.TAG }}
 
 
 
