@@ -47,8 +47,8 @@ jobs:
     name: Build and Push to GCP
     runs-on: ubuntu-latest
     env:
-      IMAGE_NAME: lesson-087
-      PROJECT_ID: devopsbyexample-325402
+      IMAGE_NAME: nodejs-demo
+      PROJECT_ID: ancient-cortex-307015
     steps:
     - name: Checkout
       uses: actions/checkout@v2
